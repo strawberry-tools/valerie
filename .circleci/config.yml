@@ -28,8 +28,8 @@ workflows:
     jobs:
       - test
       - gor/release:
-          version: "0.165.0"
-          go-version: "1.16.4"
+          version: "0.170.0"
+          go-version: "1.16.5"
           dry-run: true
           post-steps:
             - persist_to_workspace:
@@ -57,8 +57,8 @@ workflows:
               # Simplified SemVer regex
               only: /^v\d+\.\d+\.\d+$/
       - gor/release:
-          version: "0.165.0"
-          go-version: "1.16.4"
+          version: "0.170.0"
+          go-version: "1.16.5"
           filters:
             branches:
               ignore: /.*/
