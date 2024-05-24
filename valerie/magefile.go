@@ -17,5 +17,5 @@ func Install() error {
 
 func Remove() error {
 
-	return sh.Run("go", "clean", "-i", "github.com/felicianotech/valerie/valerie")
+	return sh.Run("go", "clean", "-i", "github.com/strawberry-tools/valerie/valerie")
 }
