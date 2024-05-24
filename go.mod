@@ -1,4 +1,4 @@
-module github.com/felicianotech/valerie
+module github.com/strawberry-tools/valerie
 
 go 1.17
 
