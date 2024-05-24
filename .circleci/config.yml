@@ -1,35 +1,37 @@
 version: 2.1
 
 orbs:
-  gor: hubci/goreleaser@1.0
-  osd: circleci/os-detect@0.3.0
+  gor: hubci/goreleaser@2.3
+  osd: hubci/sphere@0.2
+  aptly: felicianotech/aptly@0.1
+  ts: hubci/tailscale@0.3
 
 executors:
   linux-docker:
     docker:
-      - image: cimg/base:2022.01
+      - image: cimg/base:2024.05
   linux-amd64:
     machine:
-      image: ubuntu-2004:202111-02
+      image: ubuntu-2204:2024.04.1
   linux-arm64:
     machine:
-      image: ubuntu-2004:202111-02
+      image: ubuntu-2204:2024.04.1
     resource_class: arm.medium
   macos:
     macos:
-      xcode: 12.3.0
+      xcode: 14.0.0
   windows:
     machine:
       image: windows-server-2019-vs2019:stable
       resource_class: windows.medium
 
 workflows:
-  main:
+  main-wf:
     jobs:
       - test
       - gor/release:
-          version: "1.4.1"
-          go-version: "1.17.6"
+          version: "1.26.2"
+          go-version: "1.22.3"
           dry-run: true
           post-steps:
             - persist_to_workspace:
@@ -47,7 +49,7 @@ workflows:
                 - linux-arm64
                 - macos
                 #- windows
-  release:
+  release-wf:
     jobs:
       - test:
           filters:
@@ -57,8 +59,8 @@ workflows:
               # Simplified SemVer regex
               only: /^v\d+\.\d+\.\d+$/
       - gor/release:
-          version: "1.4.1"
-          go-version: "1.17.6"
+          version: "1.26.2"
+          go-version: "1.22.3"
           filters:
             branches:
               ignore: /.*/
@@ -70,12 +72,22 @@ workflows:
                 root: "."
                 paths:
                   - "dist"
-          context: main
+          context: goreleaser-ctx
+      - deb-publish:
+          requires:
+            - gor/release
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              # Simplified SemVer regex
+              only: /^v\d+\.\d+\.\d+$/
+          context: k8s-ctx
 
 jobs:
   test:
     docker:
-      - image: cimg/go:1.17.6
+      - image: cimg/go:1.22.3
     environment:
       GOTESTSUM_JUNITFILE: "junit/unit-tests.xml"
     steps:
@@ -114,8 +126,49 @@ jobs:
       - attach_workspace:
           at: .
       - run: |
-          if [ $OSD_FAMILY == "linux" ]; then
-            ./dist/valerie_linux_$(dpkg --print-architecture)/valerie version
-          else
-            ./dist/valerie_darwin_amd64/valerie version
+          V1=""
+
+          if uname -m | grep "x86_64"; then
+            V1="_v1"
           fi
+
+          if [ $OSD_FAMILY == "linux" ]; then
+
+            ./dist/valerie_linux_$(dpkg --print-architecture)${V1}/valerie version
+          else
+            ./dist/valerie_darwin_amd64${V1}/valerie version
+          fi
+  deb-publish:
+    executor: linux-amd64
+    steps:
+      - attach_workspace:
+          at: .
+      - ts/install
+      - ts/connect
+      - run: |
+          # Upload the .deb files - one line per arch type
+          curl -X POST -F file=@./dist/hubci-valerie-${CIRCLE_TAG}-amd64.deb "https://aptly.horse-dragon.ts.net/api/files/valerie-${CIRCLE_TAG}"
+          curl -X POST -F file=@./dist/hubci-valerie-${CIRCLE_TAG}-arm64.deb "https://aptly.horse-dragon.ts.net/api/files/valerie-${CIRCLE_TAG}"
+          curl -X POST -F file=@./dist/hubci-valerie-${CIRCLE_TAG}-armhf.deb "https://aptly.horse-dragon.ts.net/api/files/valerie-${CIRCLE_TAG}"
+
+          # Each repo/snapshot below should include the param to not delete the uploaded files except for the last one
+
+          # Release packages for Ubuntu 22.04 "Jammy"
+          curl -X POST "https://aptly.horse-dragon.ts.net/api/repos/ftech-ubuntu-jammy/file/valerie-${CIRCLE_TAG}?noRemove=1"
+          curl -X POST -H 'Content-Type: application/json' --data '{"Name": "ftech-ubuntu-jammy--valerie-'$CIRCLE_TAG'"}' "https://aptly.horse-dragon.ts.net/api/repos/ftech-ubuntu-jammy/snapshots"
+          curl -X PUT -H 'Content-Type: application/json' --data '{"Snapshots": [{"Component": "main", "Name": "ftech-ubuntu-jammy--valerie-'$CIRCLE_TAG'"}]}' "https://aptly.horse-dragon.ts.net/api/publish/filesystem:ftech:ubuntu/jammy"
+
+          # Release packages for Ubuntu 23.10 "Mantic"
+          curl -X POST "https://aptly.horse-dragon.ts.net/api/repos/ftech-ubuntu-mantic/file/valerie-${CIRCLE_TAG}?noRemove=1"
+          curl -X POST -H 'Content-Type: application/json' --data '{"Name": "ftech-ubuntu-mantic--valerie-'$CIRCLE_TAG'"}' "https://aptly.horse-dragon.ts.net/api/repos/ftech-ubuntu-mantic/snapshots"
+          curl -X PUT -H 'Content-Type: application/json' --data '{"Snapshots": [{"Component": "main", "Name": "ftech-ubuntu-mantic--valerie-'$CIRCLE_TAG'"}]}' "https://aptly.horse-dragon.ts.net/api/publish/filesystem:ftech:ubuntu/mantic"
+
+          # Release packages for Ubuntu 24.04 "Noble"
+          curl -X POST "https://aptly.horse-dragon.ts.net/api/repos/ftech-ubuntu-noble/file/valerie-${CIRCLE_TAG}?noRemove=1"
+          curl -X POST -H 'Content-Type: application/json' --data '{"Name": "ftech-ubuntu-noble--valerie-'$CIRCLE_TAG'"}' "https://aptly.horse-dragon.ts.net/api/repos/ftech-ubuntu-noble/snapshots"
+          curl -X PUT -H 'Content-Type: application/json' --data '{"Snapshots": [{"Component": "main", "Name": "ftech-ubuntu-noble--valerie-'$CIRCLE_TAG'"}]}' "https://aptly.horse-dragon.ts.net/api/publish/filesystem:ftech:ubuntu/noble"
+
+          # Release packages for Ubuntu "Oracular"
+          curl -X POST "https://aptly.horse-dragon.ts.net/api/repos/ftech-ubuntu-oracular/file/valerie-${CIRCLE_TAG}"
+          curl -X POST -H 'Content-Type: application/json' --data '{"Name": "ftech-ubuntu-oracular--valerie-'$CIRCLE_TAG'"}' "https://aptly.horse-dragon.ts.net/api/repos/ftech-ubuntu-oracular/snapshots"
+          curl -X PUT -H 'Content-Type: application/json' --data '{"Snapshots": [{"Component": "main", "Name": "ftech-ubuntu-oracular--valerie-'$CIRCLE_TAG'"}]}' "https://aptly.horse-dragon.ts.net/api/publish/filesystem:ftech:ubuntu/oracular"
