@@ -1,3 +1,4 @@
+version: 2
 project_name: valerie
 
 builds:
@@ -14,9 +15,6 @@ builds:
 
 archives:
   - format: tar.gz
-    format_overrides:
-      - goos: windows
-        format: zip
     name_template: >-
       {{ .ProjectName }}-v{{ .Version }}-{{ if eq .Os "darwin" }}macos{{ else }}{{ .Os }}{{ end }}-{{ .Arch }}{{ if .Arm }}hf{{ end }}
     files:
@@ -33,13 +31,13 @@ nfpms:
       - deb
 
 brews:
-  - tap:
+  - repository:
       owner: strawberry-tools
       name: homebrew-tap
     commit_author:
       name: "Ricardo N Feliciano (FelicianoTech)"
       email: "Ricardo@Feliciano.Tech"
-    folder: Formula
+    directory: Formula
     homepage: "https://github.com/strawberry-tools/valerie"
     description: "An HTML schema validator."
     test: |
