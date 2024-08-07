@@ -10,6 +10,7 @@ executors:
   linux-docker:
     docker:
       - image: cimg/base:2024.07
+    resource_class: small
   linux-amd64:
     machine:
       image: ubuntu-2204:2024.05.1
@@ -20,10 +21,6 @@ executors:
   macos:
     macos:
       xcode: 15.4.0
-  windows:
-    machine:
-      image: windows-server-2019-vs2019:stable
-      resource_class: windows.medium
 
 workflows:
   main-wf:
@@ -45,10 +42,8 @@ workflows:
             parameters:
               image:
                 - linux-docker
-                - linux-amd64
                 - linux-arm64
                 - macos
-                #- windows
   release-wf:
     jobs:
       - test:
@@ -136,7 +131,7 @@ jobs:
 
             ./dist/valerie_linux_$(dpkg --print-architecture)${V1}/valerie version
           else
-            ./dist/valerie_darwin_arm64${V1}/valerie version
+            ./dist/valerie_darwin_arm64/valerie version
           fi
   deb-publish:
     executor: linux-amd64
