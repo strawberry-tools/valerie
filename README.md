@@ -1,4 +1,4 @@
-# Valerie - validate HTML schemas with Valerie [![CI Status](https://circleci.com/gh/felicianotech/valerie.svg?style=shield)](https://app.circleci.com/pipelines/github/felicianotech/valerie) [![Software License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/felicianotech/valerie/master/LICENSE)
+# Valerie [![CI Status](https://dl.circleci.com/status-badge/img/gh/strawberry-tools/valerie/tree/trunk.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/gh/strawberry-tools/valerie/tree/trunk) [![Software License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/strawberry-tools/valerie/trunk/LICENSE)
 
 Validate HTML with Valerie!
 
@@ -12,7 +12,6 @@ Further Open Graph support, and eventually support for Twitter Cards, JSON Feed,
 - [Install Valerie](#install-valerie)
   - [Linux](#linux)
   - [macOS](#macos)
-  - [Windows](#windows)
   - [Continuous Integration (CI) Systems](#continuous-integration-ci-systems)
 - [Usage](#usage)
 
@@ -31,7 +30,7 @@ Many distros allow you to double-click the file to install.
 Via terminal, you can do the following:
 
 ```bash
-wget https://github.com/felicianotech/valerie/releases/download/v0.1.0/valerie_0.1.0_amd64.deb
+wget https://github.com/strawberry-tools/valerie/releases/download/v0.1.0/valerie_0.1.0_amd64.deb
 sudo dpkg -i valeri_0.1.0_amd64.deb
 ```
 
@@ -43,7 +42,7 @@ Simply download the tarball for your OS and architecture and extract the binary 
 Here's one way to do this with `curl` and `tar`:
 
 ```bash
-dlURL="https://github.com/felicianotech/valerie/releases/download/v0.1.0/valerie-v0.1.0-linux-amd64.tar.gz"
+dlURL="https://github.com/strawberry-tools/valerie/releases/download/v0.1.0/valerie-v0.1.0-linux-amd64.tar.gz"
 curl -sSL $dlURL | sudo tar -xz -C /usr/local/bin valerie
 ```
 
@@ -68,21 +67,11 @@ Simply download the tarball for your OS and architecture and extract the binary 
 Here's one way to do this with `curl` and `tar`:
 
 ```bash
-dlURL="https://github.com/felicianotech/valerie/releases/download/v0.1.0/valerie-v0.1.0-macos-amd64.tar.gz"
+dlURL="https://github.com/strawberry-tools/valerie/releases/download/v0.1.0/valerie-v0.1.0-macos-amd64.tar.gz"
 curl -sSL $dlURL | sudo tar -xz -C /usr/local/bin valerie
 ```
 
 `0.1.0` may need to be replaced with your desired version.
-
-### Windows
-
-Valerie supports Windows 10 by downloading and installing the binary.
-Chocolately support is likely coming in the future.
-If there's a Windows package manager you'd like support for (including Chocolately), please open a GItHub Issue and ask for it.
-
-#### Binary Install (exe)
-You can download and run the Valerie executable from the [GitHub Releases page][gh-releases].
-Simply download the zip for architecture and extract the exe.
 
 ### Continuous Integration (CI) Systems
 
@@ -116,4 +105,4 @@ The license can be found [here](./LICENSE).
 
 
 
-[gh-releases]: https://github.com/felicianotech/valerie/releases
+[gh-releases]: https://github.com/strawberry-tools/valerie/releases
